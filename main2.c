@@ -26,17 +26,7 @@ int		main(int argc, const char *argv[])
 	char	*line_fd1;
 	char	*line_fd2;
 	char	*line_fd3;
-/*
-	char	*out_fd0;
-	char	*out_fd1;
-	char	*out_fd2;
-	char	*out_fd3;
 
-	out_fd0 = malloc(sizeof(char) * 9);
-	out_fd1 = malloc(sizeof(char) * 9);
-	out_fd2 = malloc(sizeof(char) * 9);
-	out_fd3 = malloc(sizeof(char) * 9);
-*/
 	fd0 = open("in_0", O_RDONLY);
 	fd1 = open("in_1", O_RDONLY);
 	fd2 = open("in_2", O_RDONLY);
