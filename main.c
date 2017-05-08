@@ -10,48 +10,99 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "libft/libft.h"
 #include <fcntl.h>
 #include <unistd.h>
-#include "libft/libft.h"
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "get_next_line.h"
 
-int		main(int argc, const char *argv[])
+int	files_has(char **files, char *file, int len)
 {
-	char	*s;
-	int		fd;
-	int		fd1;
-	int		fd2;
-	int		fd3;
-	int		i;
-
-	i = 0;
-	fd1 = open(argv[1], O_RDONLY);
-	fd2 = open(argv[2], O_RDONLY);
-	fd3 = open(argv[3], O_RDONLY);
-	while(i++ < 15)
-		get_next_line(fd1, &s);
-	while(i++ < 35)
-		get_next_line(fd2, &s);
-	while(i++ < 70)
-		get_next_line(fd3, &s);
-	while(i++ < 85)
-		get_next_line(fd1, &s);
+	while (len--)
+		if (!ft_strcmp(file, files[len]))
+			return (1);
 	return (0);
+}
 
-//	while (--argc)
-//	{
-	fd = open(argv[1], O_RDONLY);
-	ft_putnbr(fd);
+int	add_file(char **files, int *fds, char *file)
+{
+	int i;
+	int fd;
+
+	i = -1;
+	while (1)
+		if (files[++i][0] == '\0')
+		{
+			files[i] = file;
+			break ;
+		}
+	fd = open(file, O_RDONLY);
+	fds[i] = fd;
+	return (fd);	
+}
+
+int	get_fd(char **files, int *fds, char *file)
+{
+	int i;
+
+	i = -1;
+	while (1)
+		if (!ft_strcmp(files[++i], file))
+			return (fds[i]);
+}
+
+void	close_file(char **files, int *fds, int fd)
+{
+	int i;
+
+	i = -1;
+	while (1)
+		if (fds[++i] == fd)
+		{
+			fds[i] = 0;
+			break ;
+		}
+	ft_putstr("EOF ");
+	ft_putstr(files[i]);
 	ft_putstr("\n");
-	while (get_next_line(fd, &s) == 1)
-		ft_putstr("\n");
+	files[i][0] = '\0';
 	close(fd);
-	fd = open(argv[2], O_RDONLY);
-	ft_putnbr(fd);
-	ft_putstr("\n");
-	while (get_next_line(fd, &s) == 1)
-		ft_putstr("\n");
-	close(fd);
-//	}
+}
+
+int	main(int argc, char *argv[])
+{
+	int	i;
+	int	j;
+	int	fd;
+	char	**files;
+	int	*fds;
+	char	*line;
+
+	line = NULL;
+	files = (char **)malloc(sizeof(char *) * (argc / 2));
+	i = -1;
+	while (++i < argc / 2)
+		files[i] = (char *)ft_memalloc(sizeof(char) * 20);
+	fds = (int *)ft_memalloc(sizeof(int) * (argc / 2));
+	i = 1;
+	while (i < argc)
+	{
+		j = -1;
+		if (!files_has(files, argv[i], argc / 2))
+			fd = add_file(files, fds, argv[i]);
+		else
+			fd = get_fd(files, fds, argv[i]);
+		while (++j < atoi(argv[i + 1]))
+		{
+			if (!get_next_line(fd, &line))
+			{
+				close_file(files, fds, fd); 
+				break;
+			}
+		}
+		i += 2;
+	}
 	return (0);
 }
