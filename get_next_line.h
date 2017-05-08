@@ -12,13 +12,12 @@
 
 #ifndef GET_NEXT_LINE_H
 # define GET_NEXT_LINE_H
-# define BUFF_SIZE 9999
+# define BUFF_SIZE 100
 
 int						get_next_line(const int fd, char **line);
 typedef struct s_str	t_str;
 struct					s_str
 {
-	int		curr_line;
 	int		fd;
 	char	*str;
 	t_str	*next;
