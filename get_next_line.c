@@ -6,7 +6,7 @@
 /*   By: houssana <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/02 15:13:58 by houssana          #+#    #+#             */
-/*   Updated: 2017/05/06 18:29:03 by houssana         ###   ########.fr       */
+/*   Updated: 2017/05/09 15:03:27 by houssana         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,22 +17,20 @@
 #include "get_next_line.h"
 #include "libft/libft.h"
 
-int		add_to_list(t_str **list, const int fd, t_str *tmp)
+int		add_to_list(t_file **list, const int fd, t_file *file)
 {
-	char	*tmp_str;
-
-	tmp->fd = fd;
-	tmp->next = *list;
-	if (!(tmp->str = ft_strnew(1)))
+	file->fd = fd;
+	file->next = *list;
+	if (!(file->str = ft_strnew(1)))
 		return (0);
-	*list = tmp;
+	*list = file;
 	return (1);
 }
 
-void	remove_from_lst(const int fd, t_str **lst)
+void	remove_from_lst(const int fd, t_file **lst)
 {
-	t_str	*prev;
-	t_str	*l;
+	t_file	*prev;
+	t_file	*l;
 
 	prev = 0;
 	l = *lst;
@@ -51,57 +49,72 @@ void	remove_from_lst(const int fd, t_str **lst)
 	ft_memdel((void **)&l);
 }
 
-int		next_line(const int fd, char **line, t_str **lst, t_str *tmp)
+int		check_last_line(int len, char **line, t_file *file, char **buffer)
+{
+	ft_strdel(buffer);
+	if (len == -1)
+		return (-1);
+	*line = ft_strdup(file->str);
+	ft_strdel(&(file->str));
+	if (ft_strlen(*line) > 0)
+	{
+		file->str = ft_strnew(1);
+		return (1);
+	}
+	return (0);
+}
+
+int		next_line(const int fd, char **line, t_file *file)
 {
 	int		len;
-	char	buffer[BUFF_SIZE + 1];
+	char	*buffer;
 	char	*s;
 
-	while (tmp && tmp->fd != fd)
-		tmp = tmp->next;
-	s = tmp->str;
-	while (!(s = ft_strstr(tmp->str, "\n")))
+	if (!(buffer = ft_strnew(BUFF_SIZE + 1)))
+		return (-1);
+	while (file && file->fd != fd)
+		file = file->next;
+	while (!(s = ft_strstr(file->str, "\n")))
 	{
 		if ((len = read(fd, buffer, BUFF_SIZE)) <= 0)
-			return (len);
+			return (check_last_line(len, line, file, &buffer));
 		buffer[len] = '\0';
-		s = ft_strjoin(tmp->str, buffer);
-		ft_strdel(&(tmp->str));
-		tmp->str = s;
-		if (len < BUFF_SIZE)
-			break ;
+		s = ft_strjoin(file->str, buffer);
+		ft_strdel(&(file->str));
+		file->str = s;
 	}
-	s = ft_strstr(tmp->str, "\n");
-	*line = ft_strsub(tmp->str, 0, (int)(s - tmp->str));
-	s = ft_strsub(tmp->str, (int)(s - tmp->str + 1), ft_strlen(tmp->str) - (int)(s - tmp->str + 1));
-	ft_strdel(&(tmp->str));
-	tmp->str = s;
+	ft_strdel(&buffer);
+	len = (int)(s - file->str + 1);
+	*line = ft_strsub(file->str, 0, len - 1);
+	s = ft_strsub(file->str, len, ft_strlen(file->str) - len);
+	ft_strdel(&(file->str));
+	file->str = s;
 	return (1);
 }
 
 int		get_next_line(const int fd, char **line)
 {
-	static	t_str	*str_lst = 0;
-	t_str			*tmp;
-	int		r;
+	static	t_file	*file_lst = 0;
+	t_file			*file;
+	int				r;
 
 	if (!line)
 		return (-1);
-	tmp = str_lst;
-	while (tmp)
+	file = file_lst;
+	while (file)
 	{
-		if (tmp->fd == fd)
+		if (file->fd == fd)
 			break ;
-		tmp = tmp->next;
+		file = file->next;
 	}
-	if (!tmp)
+	if (!file)
 	{
-		if (!(tmp = (t_str *)malloc(sizeof(t_str))))
+		if (!(file = (t_file *)malloc(sizeof(t_file))))
 			return (-1);
-		if (!(add_to_list(&str_lst, fd, tmp)))
+		if (!(add_to_list(&file_lst, fd, file)))
 			return (-1);
 	}
-	if (!(r = next_line(fd, line, &str_lst, tmp)))
-		remove_from_lst(fd, &str_lst);
+	if (!(r = next_line(fd, line, file)))
+		remove_from_lst(fd, &file_lst);
 	return (r);
 }
