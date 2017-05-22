@@ -6,7 +6,7 @@
 /*   By: houssana <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/02 15:13:58 by houssana          #+#    #+#             */
-/*   Updated: 2017/05/09 15:03:27 by houssana         ###   ########.fr       */
+/*   Updated: 2017/05/22 14:36:51 by houssana         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,10 +54,10 @@ int		check_last_line(int len, char **line, t_file *file, char **buffer)
 	ft_strdel(buffer);
 	if (len == -1)
 		return (-1);
-	*line = ft_strdup(file->str);
-	ft_strdel(&(file->str));
-	if (ft_strlen(*line) > 0)
+	if (ft_strlen(file->str) > 0)
 	{
+		*line = ft_strdup(file->str);
+		ft_strdel(&(file->str));
 		file->str = ft_strnew(1);
 		return (1);
 	}
@@ -98,7 +98,7 @@ int		get_next_line(const int fd, char **line)
 	t_file			*file;
 	int				r;
 
-	if (!line)
+	if (!line || read(fd, file, 0) == -1)
 		return (-1);
 	file = file_lst;
 	while (file)
